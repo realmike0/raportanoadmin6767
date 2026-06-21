@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raportano Live Score - Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            color-scheme: light dark;
+        }
+
+        body {
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        @media (prefers-color-scheme: light) {
+            body {
+                background: #fffbfe;
+                color: #1c1b1f;
+            }
+            :root {
+                --primary: #7d5260;
+                --on-primary: #ffffff;
+                --surface: #fffbfe;
+                --on-surface: #1c1b1f;
+                --surface-container: #f7f2f6;
+                --outline: #79747e;
+                --error: #b3261e;
+                --success: #1b5e20;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #1c1b1f;
+                color: #e6e1e5;
+            }
+            :root {
+                --primary: #eaddff;
+                --on-primary: #432874;
+                --surface: #1c1b1f;
+                --on-surface: #e6e1e5;
+                --surface-container: #2f2d32;
+                --outline: #9e9da0;
+                --error: #f2b8b5;
+                --success: #69f0ae;
+            }
+        }
+
+        /* LAYOUT */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        header {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--outline);
+            background: var(--surface-container);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border-bottom: 1px solid var(--outline);
+            overflow-x: auto;
+            background: var(--surface-container);
+        }
+
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+            background: transparent;
+            color: var(--on-surface);
+            border: 2px solid transparent;
+        }
+
+        .nav-btn:hover {
+            background: var(--surface-container);
+        }
+
+        .nav-btn.active {
+            background: var(--primary);
+            color: var(--on-primary);
+            border-color: var(--primary);
+        }
+
+        /* CONTENT */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        /* CARDS */
+        .card {
+            background: var(--surface-container);
+            border: 1px solid var(--outline);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        /* FORMS */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--outline);
+            border-radius: 8px;
+            background: var(--surface);
+            color: var(--on-surface);
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(125, 82, 96, 0.1);
+        }
+
+        /* BUTTONS */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--on-primary);
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: var(--surface-container);
+            color: var(--on-surface);
+            border: 1px solid var(--outline);
+        }
+
+        .btn-secondary:hover {
+            background: var(--outline);
+        }
+
+        .btn-error {
+            background: var(--error);
+            color: #ffffff;
+        }
+
+        .btn-error:hover {
+            opacity: 0.9;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: var(--surface);
+        }
+
+        /* NOTIFICATION */
+        .notification {
+            background: var(--surface-container);
+            border-left: 4px solid var(--primary);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .notification.error {
+            border-left-color: var(--error);
+        }
+
+        .notification.success {
+            border-left-color: var(--success);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* MATCH CARD */
+        .match-card {
+            background: var(--surface);
+            border: 1px solid var(--outline);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .team-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .score {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            min-width: 100px;
+        }
+
+        .match-time {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            grid-column: 1 / -1;
+        }
+
+        /* GOALS LIST */
+        .goals-container {
+            max-height: 300px;
+            overflow-y: auto;
+            background: var(--surface);
+            border: 1px solid var(--outline);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .goal-item {
+            padding: 0.75rem;
+            background: var(--surface-container);
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .goal-item .team-badge {
+            font-weight: 700;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        /* TABLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        thead {
+            border-bottom: 2px solid var(--outline);
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            font-weight: 600;
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--outline);
+        }
+
+        tbody tr:hover {
+            background: var(--surface-container);
+        }
+
+        /* GRID */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .navbar {
+                gap: 0.5rem;
+            }
+
+            .nav-btn {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .match-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .score {
+                font-size: 1.5rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+
+        /* UTILITIES */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-2 {
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>⚽ Raportano Live Score - Admin</h1>
+            <p style="opacity: 0.7; margin-top: 0.5rem;">Gestisci partite, classifica e regolamento</p>
+        </header>
+
+        <nav class="navbar">
+            <button class="nav-btn active" onclick="switchScreen('home', this)">🏠 Home</button>
+            <button class="nav-btn" onclick="switchScreen('partite', this)">🎮 Partite</button>
+            <button class="nav-btn" onclick="switchScreen('classifica', this)">📊 Classifica</button>
+            <button class="nav-btn" onclick="switchScreen('staff', this)">👥 Staff</button>
+            <button class="nav-btn" onclick="switchScreen('regolamento', this)">📄 Regolamento</button>
+        </nav>
+
+        <div class="content">
+            <!-- SCREEN 1: HOME -->
+            <div id="home" class="screen active">
+                <div class="card">
+                    <h2>📢 Prossima Partita</h2>
+                    <div id="nextMatchInfo" style="font-size: 1.1rem; margin: 1rem 0;">
+                        Caricamento...
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                        <button class="btn btn-primary" onclick="sendNotification()">🔔 Invia Notifica</button>
+                        <button class="btn btn-success" onclick="startMatch()">▶️ Avvia Partita</button>
+                        <button class="btn btn-error" onclick="cancelMatch()">❌ Annulla Partita</button>
+                    </div>
+                </div>
+
+                <div id="notificationArea"></div>
+
+                <div class="card">
+                    <h2>📈 Statistiche</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="totalMatches">0</div>
+                            <div style="opacity: 0.7;">Partite Totali</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="totalTeams">0</div>
+                            <div style="opacity: 0.7;">Squadre</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="totalGoals">0</div>
+                            <div style="opacity: 0.7;">Gol Totali</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SCREEN 2: PARTITE -->
+            <div id="partite" class="screen">
+                <div class="card">
+                    <h2>⚽ Nuovo Risultato</h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Squadra 1</label>
+                            <select id="team1">
+                                <option value="">Seleziona squadra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Squadra 2</label>
+                            <select id="team2">
+                                <option value="">Seleziona squadra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data Partita</label>
+                            <input type="date" id="matchDate" value="">
+                        </div>
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Marcatore</label>
+                            <input type="text" id="goalScorer" placeholder="Nome giocatore">
+                        </div>
+                        <div class="form-group">
+                            <label>Minuto</label>
+                            <input type="number" id="goalMinute" placeholder="45" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Chi ha segnato?</label>
+                            <select id="goalTeam">
+                                <option value="">Scegli squadra</option>
+                                <option value="1">Squadra 1</option>
+                                <option value="2">Squadra 2</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <button class="btn btn-primary" onclick="addGoal()">➕ Registra Gol</button>
+                        <button class="btn btn-secondary" onclick="undoLastGoal()">↩️ Annulla Ultimo Gol</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>🎯 Gol Registrati</h2>
+                    <div class="goals-container" id="goalsList">
+                        <p style="opacity: 0.7; text-align: center;">Nessun gol registrato</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Risultato Attuale</h2>
+                    <div style="font-size: 1.5rem; text-align: center; margin: 1rem 0;">
+                        <span id="finalTeam1">-</span> 
+                        <strong style="margin: 0 1rem; color: var(--primary);" id="finalScore">0 - 0</strong> 
+                        <span id="finalTeam2">-</span>
+                    </div>
+                    <button class="btn btn-success" style="width: 100%; margin-top: 1rem;" onclick="saveMatch()">✅ Salva Partita</button>
+                </div>
+            </div>
+
+            <!-- SCREEN 3: CLASSIFICA -->
+            <div id="classifica" class="screen">
+                <div class="card">
+                    <h2>📊 Modifica Punti</h2>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div class="form-group">
+                            <label>Seleziona Squadra</label>
+                            <select id="editTeamSelect" onchange="loadTeamPoints()">
+                                <option value="">Scegli squadra</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Punti</label>
+                            <input type="number" id="editPoints" placeholder="9" min="0">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="updateTeamPoints()">💾 Aggiorna Punti</button>
+                </div>
+
+                <div class="card">
+                    <h2>🏆 Classifica Completa</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Squadra</th>
+                                <th>G</th>
+                                <th>V</th>
+                                <th>P</th>
+                                <th>S</th>
+                                <th>GF</th>
+                                <th>GS</th>
+                                <th>DG</th>
+                                <th>Pts</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standingsTable">
+                            <tr>
+                                <td colspan="11" class="text-center">Caricamento classifica...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SCREEN 4: STAFF -->
+            <div id="staff" class="screen">
+                <div class="card">
+                    <h2>👥 Aggiungi Nuovo Staff</h2>
+                    
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" id="staffName" placeholder="Mario Rossi">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ruolo</label>
+                        <select id="staffRole">
+                            <option value="">Seleziona ruolo</option>
+                            <option value="Responsabile">Responsabile</option>
+                            <option value="Assistente">Assistente</option>
+                            <option value="Arbitro">Arbitro</option>
+                            <option value="Medico">Medico</option>
+                            <option value="Segretario">Segretario</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="addStaff()">➕ Aggiungi Staff</button>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Elenco Staff</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Ruolo</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTable">
+                            <tr>
+                                <td colspan="3" class="text-center">Nessuno staff aggiunto</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SCREEN 5: REGOLAMENTO -->
+            <div id="regolamento" class="screen">
+                <div class="card">
+                    <h2>📄 Gestione Regolamento</h2>
+                    
+                    <div class="form-group">
+                        <label>Carica Nuovo PDF Regolamento</label>
+                        <input type="file" id="pdfFile" accept=".pdf">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="uploadPDF()">📤 Carica PDF</button>
+                    <button class="btn btn-secondary" onclick="downloadPDF()" style="margin-left: 0.5rem;">📥 Scarica PDF</button>
+                </div>
+
+                <div class="card">
+                    <h2>📖 Preview Regolamento</h2>
+                    <div id="pdfPreview" style="width: 100%; height: 500px; border: 1px solid var(--outline); border-radius: 8px; display: flex; align-items: center; justify-content: center; opacity: 0.7;">
+                        Carica un PDF per visualizzare l'anteprima
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG SUPABASE
+        const SUPABASE_URL = "YOUR_SUPABASE_URL"; // https://xxx.supabase.co
+        const SUPABASE_KEY = "YOUR_SUPABASE_KEY";   // anon key
+
+        // STATE
+        let currentMatch = {
+            team1: "",
+            team2: "",
+            score1: 0,
+            score2: 0,
+            goals: [],
+            date: new Date().toISOString().split('T')[0]
+        };
+
+        let teams = [];
+        let standings = [];
+        let staff = [];
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('matchDate').valueAsDate = new Date();
+            loadTeams();
+            loadStandings();
+            loadStaff();
+            updateHomeStats();
+        });
+
+        // NAVIGATION
+        function switchScreen(screenName, button) {
+            console.log('Switching to:', screenName);
+            
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            // Show selected screen
+            const screen = document.getElementById(screenName);
+            if (screen) {
+                screen.classList.add('active');
+            }
+
+            // Mark button as active
+            if (button) {
+                button.classList.add('active');
+            }
+
+            // Refresh data based on screen
+            if (screenName === 'classifica') {
+                loadStandings();
+            } else if (screenName === 'staff') {
+                loadStaff();
+            } else if (screenName === 'home') {
+                updateHomeStats();
+            }
+        }
+
+        // API CALLS - FIXED
+        async function apiCall(method, table, data = null, filters = null) {
+            let url = `${SUPABASE_URL}/rest/v1/${table}`;
+            
+            if (filters && method === 'GET') {
+                const filterStr = Object.entries(filters)
+                    .map(([k, v]) => `${k}=eq.${encodeURIComponent(v)}`)
+                    .join('&');
+                url += '?' + filterStr;
+            }
+
+            const headers = {
+                'apikey': SUPABASE_KEY,
+                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            };
+
+            const options = {
+                method,
+                headers
+            };
+
+            if (data && (method === 'POST' || method === 'PATCH' || method === 'PUT')) {
+                options.body = JSON.stringify(Array.isArray(data) ? data : [data]);
+            }
+
+            try {
+                console.log(`API: ${method} ${url}`);
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    const error = await response.text();
+                    console.error('API Error:', error);
+                    throw new Error(`${response.status}: ${error}`);
+                }
+
+                const result = await response.json();
+                console.log('API Response:', result);
+                return result;
+            } catch (err) {
+                console.error('API Call Failed:', err);
+                showNotification(`❌ Errore: ${err.message}`, 'error');
+                return null;
+            }
+        }
+
+        // TEAMS
+        async function loadTeams() {
+            const result = await apiCall('GET', 'teams');
+            if (result && Array.isArray(result)) {
+                teams = result;
+                populateTeamSelects();
+            }
+        }
+
+        function populateTeamSelects() {
+            const selects = ['team1', 'team2', 'editTeamSelect'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = '<option value="">Seleziona squadra</option>';
+                teams.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = team.name;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        // GOALS
+        function addGoal() {
+            const scorer = document.getElementById('goalScorer').value.trim();
+            const minute = document.getElementById('goalMinute').value;
+            const teamIndex = document.getElementById('goalTeam').value;
+
+            if (!scorer || !minute || !teamIndex) {
+                showNotification('Completa tutti i campi', 'error');
+                return;
+            }
+
+            const goal = {
+                scorer,
+                minute: parseInt(minute),
+                team: parseInt(teamIndex)
+            };
+
+            currentMatch.goals.push(goal);
+            if (teamIndex === '1') {
+                currentMatch.score1++;
+            } else {
+                currentMatch.score2++;
+            }
+
+            updateGoalsDisplay();
+            clearGoalForm();
+            updateScore();
+        }
+
+        function clearGoalForm() {
+            document.getElementById('goalScorer').value = '';
+            document.getElementById('goalMinute').value = '';
+            document.getElementById('goalTeam').value = '';
+        }
+
+        function updateGoalsDisplay() {
+            const container = document.getElementById('goalsList');
+            
+            if (currentMatch.goals.length === 0) {
+                container.innerHTML = '<p style="opacity: 0.7; text-align: center;">Nessun gol registrato</p>';
+                return;
+            }
+
+            container.innerHTML = currentMatch.goals
+                .map((goal, idx) => `
+                    <div class="goal-item">
+                        <div>
+                            <span class="team-badge" style="background: ${goal.team === 1 ? 'var(--primary)' : 'var(--success)'}; color: ${goal.team === 1 ? 'var(--on-primary)' : 'var(--surface)'};">
+                                ${goal.team === 1 ? 'SQ1' : 'SQ2'}
+                            </span>
+                            ${goal.scorer} - ${goal.minute}'
+                        </div>
+                        <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;" onclick="removeGoal(${idx})">✕</button>
+                    </div>
+                `)
+                .join('');
+        }
+
+        function removeGoal(idx) {
+            const goal = currentMatch.goals[idx];
+            if (goal.team === 1) {
+                currentMatch.score1--;
+            } else {
+                currentMatch.score2--;
+            }
+            currentMatch.goals.splice(idx, 1);
+            updateGoalsDisplay();
+            updateScore();
+        }
+
+        function undoLastGoal() {
+            if (currentMatch.goals.length === 0) return;
+            removeGoal(currentMatch.goals.length - 1);
+        }
+
+        function updateScore() {
+            document.getElementById('finalScore').textContent = `${currentMatch.score1} - ${currentMatch.score2}`;
+        }
+
+        // MATCH ACTIONS - FIXED
+        async function saveMatch() {
+            const team1Id = document.getElementById('team1').value;
+            const team2Id = document.getElementById('team2').value;
+            
+            if (!team1Id || !team2Id) {
+                showNotification('❌ Seleziona entrambe le squadre', 'error');
+                return;
+            }
+
+            const matchData = {
+                team1_id: team1Id,
+                team2_id: team2Id,
+                score1: currentMatch.score1,
+                score2: currentMatch.score2,
+                date: document.getElementById('matchDate').value,
+                status: 'completed'
+            };
+
+            console.log('Saving match:', matchData);
+            const result = await apiCall('POST', 'matches', matchData);
+            
+            if (result) {
+                showNotification('✅ Partita salvata al server!', 'success');
+                resetMatchForm();
+                loadStandings();
+            }
+        }
+
+        async function startMatch() {
+            const team1Id = document.getElementById('team1').value;
+            const team2Id = document.getElementById('team2').value;
+
+            if (!team1Id || !team2Id) {
+                showNotification('❌ Seleziona le squadre prima', 'error');
+                return;
+            }
+
+            const matchData = {
+                team1_id: team1Id,
+                team2_id: team2Id,
+                score1: 0,
+                score2: 0,
+                date: document.getElementById('matchDate').value,
+                status: 'started'
+            };
+
+            console.log('Starting match:', matchData);
+            const result = await apiCall('POST', 'matches', matchData);
+            
+            if (result) {
+                showNotification(`▶️ Partita avviata! ${document.getElementById('team1').textContent} vs ${document.getElementById('team2').textContent}`, 'success');
+            }
+        }
+
+        async function cancelMatch() {
+            const team1Id = document.getElementById('team1').value;
+            const team2Id = document.getElementById('team2').value;
+
+            if (!team1Id || !team2Id) {
+                showNotification('❌ Seleziona le squadre', 'error');
+                return;
+            }
+
+            const matchData = {
+                team1_id: team1Id,
+                team2_id: team2Id,
+                score1: 0,
+                score2: 0,
+                date: document.getElementById('matchDate').value,
+                status: 'cancelled'
+            };
+
+            console.log('Cancelling match:', matchData);
+            const result = await apiCall('POST', 'matches', matchData);
+            
+            if (result) {
+                showNotification('❌ Partita annullata', 'error');
+                resetMatchForm();
+            }
+        }
+
+        function resetMatchForm() {
+            currentMatch = {
+                team1: "",
+                team2: "",
+                score1: 0,
+                score2: 0,
+                goals: [],
+                date: new Date().toISOString().split('T')[0]
+            };
+            document.getElementById('team1').value = '';
+            document.getElementById('team2').value = '';
+            document.getElementById('matchDate').valueAsDate = new Date();
+            document.getElementById('goalsList').innerHTML = '<p style="opacity: 0.7; text-align: center;">Nessun gol registrato</p>';
+            updateScore();
+        }
+
+        function sendNotification() {
+            showNotification('🔔 Notifica inviata ai dispositivi!', 'success');
+        }
+
+        // STANDINGS - FIXED
+        async function loadStandings() {
+            console.log('Loading standings...');
+            const result = await apiCall('GET', 'standings');
+            if (result && Array.isArray(result)) {
+                standings = result.sort((a, b) => (b.points || 0) - (a.points || 0));
+                updateStandingsDisplay();
+                
+                // Populate edit select
+                const select = document.getElementById('editTeamSelect');
+                select.innerHTML = '<option value="">Scegli squadra</option>';
+                standings.forEach(team => {
+                    const option = document.createElement('option');
+                    option.value = team.id;
+                    option.textContent = team.team_name || 'Unknown';
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function updateStandingsDisplay() {
+            const tbody = document.getElementById('standingsTable');
+            
+            if (standings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="text-center">Nessuna squadra ancora</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = standings
+                .map((team, idx) => `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${team.team_name || 'Unknown'}</td>
+                        <td>${team.played || 0}</td>
+                        <td>${team.won || 0}</td>
+                        <td>${team.drawn || 0}</td>
+                        <td>${team.lost || 0}</td>
+                        <td>${team.goals_for || 0}</td>
+                        <td>${team.goals_against || 0}</td>
+                        <td>${(team.goals_for || 0) - (team.goals_against || 0)}</td>
+                        <td><strong>${team.points || 0}</strong></td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;" onclick="editTeamPoints('${team.id}', '${team.team_name}')">✏️</button>
+                        </td>
+                    </tr>
+                `)
+                .join('');
+        }
+
+        function editTeamPoints(teamId, teamName) {
+            document.getElementById('editTeamSelect').value = teamId;
+            loadTeamPoints();
+        }
+
+        function loadTeamPoints() {
+            const teamId = document.getElementById('editTeamSelect').value;
+            const team = standings.find(t => t.id === teamId);
+            if (team) {
+                document.getElementById('editPoints').value = team.points || 0;
+            }
+        }
+
+        async function updateTeamPoints() {
+            const teamId = document.getElementById('editTeamSelect').value;
+            const points = parseInt(document.getElementById('editPoints').value);
+
+            if (!teamId || isNaN(points)) {
+                showNotification('❌ Compila tutti i campi', 'error');
+                return;
+            }
+
+            console.log('Updating points:', teamId, points);
+            
+            // Aggiorna via PATCH
+            const url = `${SUPABASE_URL}/rest/v1/standings?id=eq.${teamId}`;
+            const response = await fetch(url, {
+                method: 'PATCH',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
+                body: JSON.stringify({ points })
+            });
+
+            if (response.ok) {
+                showNotification('✅ Punti aggiornati al server!', 'success');
+                loadStandings();
+            } else {
+                showNotification('❌ Errore aggiornamento punti', 'error');
+            }
+        }
+
+        // STAFF - FIXED
+        async function addStaff() {
+            const name = document.getElementById('staffName').value.trim();
+            const role = document.getElementById('staffRole').value;
+
+            if (!name || !role) {
+                showNotification('❌ Compila tutti i campi', 'error');
+                return;
+            }
+
+            console.log('Adding staff:', name, role);
+            const result = await apiCall('POST', 'staff', { name, role });
+            
+            if (result) {
+                showNotification('✅ Staff aggiunto al server!', 'success');
+                document.getElementById('staffName').value = '';
+                document.getElementById('staffRole').value = '';
+                loadStaff();
+            }
+        }
+
+        async function loadStaff() {
+            console.log('Loading staff...');
+            const result = await apiCall('GET', 'staff');
+            if (result && Array.isArray(result)) {
+                staff = result;
+                updateStaffDisplay();
+            }
+        }
+
+        function updateStaffDisplay() {
+            const tbody = document.getElementById('staffTable');
+            
+            if (staff.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center">Nessuno staff aggiunto</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = staff
+                .map(member => `
+                    <tr>
+                        <td>${member.name}</td>
+                        <td>${member.role}</td>
+                        <td>
+                            <button class="btn btn-error" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;" onclick="deleteStaff('${member.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `)
+                .join('');
+        }
+
+        async function deleteStaff(id) {
+            if (!confirm('Sei sicuro?')) return;
+            
+            console.log('Deleting staff:', id);
+            
+            const url = `${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`;
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                showNotification('✅ Staff rimosso!', 'success');
+                loadStaff();
+            } else {
+                showNotification('❌ Errore rimozione', 'error');
+            }
+        }
+
+        // PDF
+        function uploadPDF() {
+            const file = document.getElementById('pdfFile').files[0];
+            if (!file) {
+                showNotification('Seleziona un file PDF', 'error');
+                return;
+            }
+            showNotification('✅ PDF caricato!', 'success');
+            // Qui integrerai il caricamento su Supabase Storage
+        }
+
+        function downloadPDF() {
+            showNotification('📥 Download PDF...', 'success');
+            // Qui integrerai il download da Supabase Storage
+        }
+
+        // HOME STATS
+        async function updateHomeStats() {
+            const matches = await apiCall('GET', 'matches');
+            if (matches && Array.isArray(matches)) {
+                document.getElementById('totalMatches').textContent = matches.length;
+                document.getElementById('totalGoals').textContent = matches.reduce((sum, m) => sum + m.score1 + m.score2, 0);
+            }
+
+            const teams = await apiCall('GET', 'teams');
+            if (teams && Array.isArray(teams)) {
+                document.getElementById('totalTeams').textContent = teams.length;
+            }
+        }
+
+        // NOTIFICATIONS
+        function showNotification(message, type = 'info') {
+            const area = document.getElementById('notificationArea');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            area.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
