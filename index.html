@@ -5,25 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Raportano Live Score - Admin</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            color-scheme: light dark;
-        }
-
-        body {
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { color-scheme: light dark; }
 
         @media (prefers-color-scheme: light) {
-            body {
-                background: #fffbfe;
-                color: #1c1b1f;
-            }
+            body { background: #fffbfe; color: #1c1b1f; }
             :root {
                 --primary: #7d5260;
                 --on-primary: #ffffff;
@@ -36,10 +22,7 @@
         }
 
         @media (prefers-color-scheme: dark) {
-            body {
-                background: #1c1b1f;
-                color: #e6e1e5;
-            }
+            body { background: #1c1b1f; color: #e6e1e5; }
             :root {
                 --primary: #eaddff;
                 --on-primary: #432874;
@@ -51,249 +34,61 @@
             }
         }
 
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-        }
+        body { font-family: 'Roboto', sans-serif; }
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
+        header { padding: 1rem; text-align: center; border-bottom: 1px solid var(--outline); background: var(--surface-container); }
+        header h1 { font-size: 1.5rem; font-weight: 700; }
 
-        header {
-            padding: 1rem;
-            text-align: center;
-            border-bottom: 1px solid var(--outline);
-            background: var(--surface-container);
-        }
+        .navbar { display: flex; gap: 0.5rem; padding: 1rem; border-bottom: 1px solid var(--outline); overflow-x: auto; background: var(--surface-container); }
+        .nav-btn { padding: 0.75rem 1rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; background: transparent; }
+        .nav-btn.active { background: var(--primary); color: var(--on-primary); }
 
-        header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
+        .content { flex: 1; overflow-y: auto; padding: 1.5rem; max-width: 1200px; margin: 0 auto; width: 100%; }
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        .navbar {
-            display: flex;
-            gap: 0.5rem;
-            padding: 1rem;
-            border-bottom: 1px solid var(--outline);
-            overflow-x: auto;
-            background: var(--surface-container);
-        }
+        .card { background: var(--surface-container); border: 1px solid var(--outline); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; }
+        .card h2 { font-size: 1.25rem; margin-bottom: 1rem; color: var(--primary); }
 
-        .nav-btn {
-            padding: 0.75rem 1rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            white-space: nowrap;
-            background: transparent;
-            transition: all 0.3s;
-        }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--outline); border-radius: 8px; background: var(--surface); color: inherit; font-family: inherit; font-size: 1rem; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
 
-        .nav-btn.active {
-            background: var(--primary);
-            color: var(--on-primary);
-        }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; }
+        .btn-primary { background: var(--primary); color: var(--on-primary); }
+        .btn-primary:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--surface-container); color: inherit; border: 1px solid var(--outline); }
+        .btn-error { background: var(--error); color: #ffffff; }
+        .btn-success { background: var(--success); color: var(--surface); }
 
-        .content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
+        .notification { background: var(--surface-container); border-left: 4px solid var(--primary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
+        .notification.error { border-left-color: var(--error); }
+        .notification.success { border-left-color: var(--success); }
 
-        .screen {
-            display: none;
-        }
+        .news-item { background: var(--surface); border: 1px solid var(--outline); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: start; }
+        .news-text { flex: 1; }
+        .news-text h3 { margin-bottom: 0.5rem; }
+        .news-text p { opacity: 0.7; font-size: 0.9rem; }
 
-        .screen.active {
-            display: block;
-        }
+        .calendar-container { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+        .match-card { background: var(--surface); border: 1px solid var(--outline); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; cursor: pointer; transition: all 0.3s; }
+        .match-card:hover { background: var(--surface-container); }
+        .match-score { font-size: 1.5rem; font-weight: 700; text-align: center; margin: 0.5rem 0; }
+        .match-stats { background: var(--surface-container); padding: 1rem; border-radius: 6px; margin-top: 1rem; }
+        .stat-item { padding: 0.5rem 0; display: flex; justify-content: space-between; }
 
-        .card {
-            background: var(--surface-container);
-            border: 1px solid var(--outline);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-bottom: 1rem;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        thead { border-bottom: 2px solid var(--outline); }
+        th, td { padding: 0.75rem; text-align: left; font-size: 0.95rem; }
+        tbody tr { border-bottom: 1px solid var(--outline); }
 
-        .card h2 {
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-            color: var(--primary);
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--outline);
-            border-radius: 8px;
-            background: var(--surface);
-            color: inherit;
-            font-family: inherit;
-            font-size: 1rem;
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: var(--on-primary);
-        }
-
-        .btn-primary:hover {
-            opacity: 0.9;
-        }
-
-        .btn-secondary {
-            background: var(--surface-container);
-            color: inherit;
-            border: 1px solid var(--outline);
-        }
-
-        .btn-error {
-            background: var(--error);
-            color: #ffffff;
-        }
-
-        .notification {
-            background: var(--surface-container);
-            border-left: 4px solid var(--primary);
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-        }
-
-        .notification.error {
-            border-left-color: var(--error);
-        }
-
-        .notification.success {
-            border-left-color: var(--success);
-        }
-
-        .score {
-            font-size: 2rem;
-            font-weight: 700;
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-        .goals-container {
-            background: var(--surface);
-            border: 1px solid var(--outline);
-            border-radius: 8px;
-            padding: 1rem;
-            max-height: 250px;
-            overflow-y: auto;
-        }
-
-        .goal-item {
-            padding: 0.75rem;
-            background: var(--surface-container);
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-
-        thead {
-            border-bottom: 2px solid var(--outline);
-        }
-
-        th, td {
-            padding: 0.75rem;
-            text-align: left;
-            font-size: 0.95rem;
-        }
-
-        tbody tr {
-            border-bottom: 1px solid var(--outline);
-        }
-
-        tbody tr:hover {
-            background: var(--surface-container);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-        }
-
-        .standings-row {
-            display: grid;
-            grid-template-columns: 30px 1fr 50px;
-            gap: 1rem;
-            padding: 0.75rem;
-            background: var(--surface);
-            border-radius: 6px;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .pos {
-            text-align: center;
-            font-weight: 700;
-        }
-
-        .pts {
-            text-align: center;
-            font-weight: 700;
-            color: var(--primary);
-        }
-
-        .text-center {
-            text-align: center;
-        }
+        .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
 
         @media (max-width: 768px) {
-            .navbar {
-                gap: 0.25rem;
-            }
-
-            .nav-btn {
-                padding: 0.5rem 0.75rem;
-                font-size: 0.85rem;
-            }
-
-            .content {
-                padding: 1rem;
-            }
-
-            th, td {
-                padding: 0.5rem;
-                font-size: 0.85rem;
-            }
+            .calendar-container { grid-template-columns: 1fr; }
+            .navbar { gap: 0.25rem; }
+            .nav-btn { padding: 0.5rem 0.75rem; font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -306,7 +101,7 @@
         <nav class="navbar">
             <button class="nav-btn active" onclick="switchScreen('home', this)">🏠 Home</button>
             <button class="nav-btn" onclick="switchScreen('partite', this)">⚽ Partite</button>
-            <button class="nav-btn" onclick="switchScreen('classifica', this)">📊 Classifica</button>
+            <button class="nav-btn" onclick="switchScreen('calendario', this)">📅 Calendario</button>
             <button class="nav-btn" onclick="switchScreen('staff', this)">👥 Staff</button>
             <button class="nav-btn" onclick="switchScreen('regolamento', this)">📄 Regolamento</button>
         </nav>
@@ -314,32 +109,33 @@
         <div class="content">
             <!-- HOME -->
             <div id="home" class="screen active">
+                <div id="homeNotification"></div>
+
                 <div class="card">
-                    <h2>🏆 Classifica</h2>
-                    <div id="miniStandings">
-                        Caricamento...
+                    <h2>📰 Scrivi Notizia</h2>
+                    <div class="form-group">
+                        <label>Titolo</label>
+                        <input type="text" id="newsTitle" placeholder="Titolo notizia">
                     </div>
+                    <div class="form-group">
+                        <label>Testo</label>
+                        <textarea id="newsText" placeholder="Contenuto notizia" rows="3"></textarea>
+                    </div>
+                    <button class="btn btn-primary" onclick="publishNews()" style="width: 100%;">📝 Pubblica Notizia</button>
                 </div>
 
-                <div id="notificationArea"></div>
-
                 <div class="card">
-                    <h2>📈 Statistiche</h2>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="totalMatches">0</div>
-                            <div style="opacity: 0.7;">Partite</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);" id="totalGoals">0</div>
-                            <div style="opacity: 0.7;">Gol</div>
-                        </div>
+                    <h2>📋 Notizie</h2>
+                    <div id="newsList">
+                        <p style="opacity: 0.7; text-align: center;">Caricamento notizie...</p>
                     </div>
                 </div>
             </div>
 
             <!-- PARTITE -->
             <div id="partite" class="screen">
+                <div id="partiteNotification"></div>
+
                 <div class="card">
                     <h2>⚽ Nuova Partita</h2>
                     <div class="form-row">
@@ -360,7 +156,7 @@
                             <input type="date" id="matchDate">
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="startNewMatch()" style="width: 100%;">Avvia Partita</button>
+                    <button class="btn btn-success" onclick="startNewMatch()" style="width: 100%;">▶️ Avvia Partita</button>
                 </div>
 
                 <div class="card">
@@ -383,101 +179,57 @@
                             </select>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="addGoal()">Registra Gol</button>
-                    <button class="btn btn-secondary" onclick="undoLastGoal()" style="margin-left: 0.5rem;">Annulla</button>
+                    <button class="btn btn-primary" onclick="addGoal()">➕ Registra Gol</button>
+                    <button class="btn btn-secondary" onclick="undoLastGoal()" style="margin-left: 0.5rem;">↩️ Annulla</button>
                 </div>
 
                 <div class="card">
                     <h2>📊 Risultato</h2>
-                    <div class="score" id="finalScore">0 - 0</div>
-                    <div class="goals-container" id="goalsList">
+                    <div style="font-size: 2rem; font-weight: 700; text-align: center; margin: 1rem 0;" id="finalScore">0 - 0</div>
+                    <div style="background: var(--surface); border: 1px solid var(--outline); border-radius: 8px; padding: 1rem; max-height: 250px; overflow-y: auto;" id="goalsList">
                         <p style="opacity: 0.7; text-align: center;">Nessun gol</p>
                     </div>
                     <button class="btn btn-success" style="width: 100%; margin-top: 1rem;" onclick="saveMatch()">💾 Salva Partita</button>
                 </div>
             </div>
 
-            <!-- CLASSIFICA -->
-            <div id="classifica" class="screen">
-                <div class="card">
-                    <h2>🏆 Classifica</h2>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Pos</th>
-                                <th>Squadra</th>
-                                <th>G</th>
-                                <th>V</th>
-                                <th>P</th>
-                                <th>S</th>
-                                <th>GF</th>
-                                <th>GS</th>
-                                <th>DG</th>
-                                <th>Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="standingsTable">
-                            <tr>
-                                <td colspan="10" class="text-center">Caricamento...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <!-- CALENDARIO -->
+            <div id="calendario" class="screen">
+                <div id="calendarioNotification"></div>
 
-                <div class="card">
-                    <h2>✏️ Modifica Punti</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Squadra</label>
-                            <select id="editTeamSelect" onchange="loadTeamPoints()">
-                                <option value="">Scegli</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Punti</label>
-                            <input type="number" id="editPoints" min="0">
+                <div class="calendar-container">
+                    <div>
+                        <h2 style="margin-bottom: 1rem;">📅 Partite</h2>
+                        <div id="matchesList">
+                            <p style="opacity: 0.7; text-align: center;">Caricamento partite...</p>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="updateTeamPoints()">Aggiorna</button>
+                    <div>
+                        <h2 style="margin-bottom: 1rem;">📊 Dettagli</h2>
+                        <div id="matchDetails">
+                            <p style="opacity: 0.7; text-align: center;">Seleziona una partita</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- STAFF -->
             <div id="staff" class="screen">
-                <div class="card">
-                    <h2>➕ Aggiungi Staff</h2>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nome</label>
-                            <input type="text" id="staffName" placeholder="Mario Rossi">
-                        </div>
-                        <div class="form-group">
-                            <label>Ruolo</label>
-                            <select id="staffRole">
-                                <option value="">Scegli</option>
-                                <option value="Responsabile">Responsabile</option>
-                                <option value="Assistente">Assistente</option>
-                                <option value="Arbitro">Arbitro</option>
-                                <option value="Medico">Medico</option>
-                            </select>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="addStaff()" style="width: 100%;">Aggiungi</button>
-                </div>
+                <div id="staffNotification"></div>
 
                 <div class="card">
-                    <h2>👥 Elenco</h2>
+                    <h2>👥 Gestisci Staff</h2>
                     <table>
                         <thead>
                             <tr>
-                                <th>Nome</th>
                                 <th>Ruolo</th>
-                                <th></th>
+                                <th>Nome</th>
+                                <th>Azioni</th>
                             </tr>
                         </thead>
                         <tbody id="staffTable">
                             <tr>
-                                <td colspan="3" class="text-center">Nessuno</td>
+                                <td colspan="3" class="text-center">Caricamento...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -486,6 +238,8 @@
 
             <!-- REGOLAMENTO -->
             <div id="regolamento" class="screen">
+                <div id="regolamentoNotification"></div>
+
                 <div class="card">
                     <h2>📄 Regolamento</h2>
                     <div class="form-group">
@@ -505,15 +259,16 @@
 
         let currentMatch = { team1: "", team2: "", score1: 0, score2: 0, goals: [], date: "" };
         let teams = [];
-        let standings = [];
-        let staff = [];
+        let matches = [];
+        let news = [];
+        let selectedMatchId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('matchDate').valueAsDate = new Date();
             loadTeams();
-            loadStandings();
+            loadMatches();
+            loadNews();
             loadStaff();
-            updateHomeStats();
         });
 
         function switchScreen(screenName, button) {
@@ -521,9 +276,6 @@
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(screenName).classList.add('active');
             if (button) button.classList.add('active');
-            if (screenName === 'classifica') loadStandings();
-            else if (screenName === 'staff') loadStaff();
-            else if (screenName === 'home') updateHomeStats();
         }
 
         async function apiCall(method, table, data = null) {
@@ -543,101 +295,94 @@
                 if (!response.ok) throw new Error(await response.text());
                 return await response.json();
             } catch (err) {
-                showNotification(`❌ Errore`, 'error');
                 return null;
             }
         }
 
         async function loadTeams() {
             const result = await apiCall('GET', 'teams');
-            if (result && Array.isArray(result) && result.length > 0) {
-                teams = result;
-                ['team1', 'team2', 'editTeamSelect'].forEach(id => {
-                    const select = document.getElementById(id);
-                    if (select) {
-                        select.innerHTML = '<option value="">Seleziona</option>';
-                        teams.forEach(team => {
-                            const opt = document.createElement('option');
-                            opt.value = team.id;
-                            opt.textContent = team.name;
-                            select.appendChild(opt);
-                        });
-                    }
-                });
-            }
-        }
-
-        async function loadStandings() {
-            const result = await apiCall('GET', 'standings');
             if (result && Array.isArray(result)) {
-                standings = result.sort((a, b) => (b.points || 0) - (a.points || 0));
-                updateStandingsDisplay();
-                updateMiniStandings();
+                teams = result;
+                ['team1', 'team2'].forEach(id => {
+                    const select = document.getElementById(id);
+                    select.innerHTML = '<option value="">Seleziona squadra</option>';
+                    teams.forEach(team => {
+                        const opt = document.createElement('option');
+                        opt.value = team.id;
+                        opt.textContent = team.name;
+                        select.appendChild(opt);
+                    });
+                });
+                showNotification('partiteNotification', '✅ Squadre caricate!', 'success');
             }
         }
 
-        function updateStandingsDisplay() {
-            const tbody = document.getElementById('standingsTable');
-            if (!standings.length) {
-                tbody.innerHTML = '<tr><td colspan="10" class="text-center">Nessuna squadra</td></tr>';
+        async function loadMatches() {
+            const result = await apiCall('GET', 'matches');
+            if (result && Array.isArray(result)) {
+                matches = result.sort((a, b) => new Date(b.date) - new Date(a.date));
+                updateMatchesList();
+            }
+        }
+
+        function updateMatchesList() {
+            const div = document.getElementById('matchesList');
+            if (!matches.length) {
+                div.innerHTML = '<p style="opacity: 0.7; text-align: center;">Nessuna partita</p>';
                 return;
             }
-            tbody.innerHTML = standings.map((t, i) => `
-                <tr>
-                    <td>${i + 1}</td>
-                    <td>${t.team_name}</td>
-                    <td>${t.played || 0}</td>
-                    <td>${t.won || 0}</td>
-                    <td>${t.drawn || 0}</td>
-                    <td>${t.lost || 0}</td>
-                    <td>${t.goals_for || 0}</td>
-                    <td>${t.goals_against || 0}</td>
-                    <td>${(t.goals_for || 0) - (t.goals_against || 0)}</td>
-                    <td><strong>${t.points || 0}</strong></td>
-                </tr>
-            `).join('');
+            div.innerHTML = matches.map(m => {
+                const t1 = teams.find(t => t.id === m.team1_id)?.name || 'Squad1';
+                const t2 = teams.find(t => t.id === m.team2_id)?.name || 'Squad2';
+                return `
+                    <div class="match-card" onclick="selectMatch('${m.id}')">
+                        <div style="font-size: 0.85rem; opacity: 0.7;">${m.date}</div>
+                        <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 0.5rem; align-items: center;">
+                            <div style="text-align: right; font-weight: 600;">${t1}</div>
+                            <div style="font-size: 1.5rem; font-weight: 700;">${m.score1 || 0} - ${m.score2 || 0}</div>
+                            <div style="font-weight: 600;">${t2}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function updateMiniStandings() {
-            const div = document.getElementById('miniStandings');
-            if (!standings.length) return;
-            div.innerHTML = standings.map((t, i) => `
-                <div class="standings-row">
-                    <div class="pos">${i + 1}</div>
-                    <div>${t.team_name}</div>
-                    <div class="pts">${t.points || 0}</div>
+        function selectMatch(matchId) {
+            selectedMatchId = matchId;
+            const match = matches.find(m => m.id === matchId);
+            if (!match) return;
+
+            const t1 = teams.find(t => t.id === match.team1_id)?.name || 'Squad1';
+            const t2 = teams.find(t => t.id === match.team2_id)?.name || 'Squad2';
+
+            const div = document.getElementById('matchDetails');
+            div.innerHTML = `
+                <div style="background: var(--surface-container); padding: 1rem; border-radius: 8px;">
+                    <h3 style="margin-bottom: 1rem;">${t1} vs ${t2}</h3>
+                    <div style="text-align: center; font-size: 2rem; font-weight: 700; margin: 1rem 0;">${match.score1 || 0} - ${match.score2 || 0}</div>
+                    <div style="opacity: 0.7; margin-bottom: 1rem;">${match.date}</div>
+                    <div style="background: var(--surface); padding: 1rem; border-radius: 6px;">
+                        <p><strong>Status:</strong> ${match.status || 'N/A'}</p>
+                        <p><strong>Gol Squadra 1:</strong> ${match.score1 || 0}</p>
+                        <p><strong>Gol Squadra 2:</strong> ${match.score2 || 0}</p>
+                    </div>
                 </div>
-            `).join('');
+            `;
         }
 
-        function loadTeamPoints() {
-            const teamId = document.getElementById('editTeamSelect').value;
-            const team = standings.find(t => t.id === teamId);
-            if (team) document.getElementById('editPoints').value = team.points || 0;
-        }
-
-        async function updateTeamPoints() {
-            const teamId = document.getElementById('editTeamSelect').value;
-            const points = parseInt(document.getElementById('editPoints').value);
-            if (!teamId || isNaN(points)) {
-                showNotification('❌ Compila i campi', 'error');
+        function startNewMatch() {
+            const t1 = document.getElementById('team1').value;
+            const t2 = document.getElementById('team2').value;
+            if (!t1 || !t2) {
+                showNotification('partiteNotification', '❌ Seleziona squadre', 'error');
                 return;
             }
-            const url = `${SUPABASE_URL}/rest/v1/standings?id=eq.${teamId}`;
-            const response = await fetch(url, {
-                method: 'PATCH',
-                headers: { 
-                    'apikey': SUPABASE_KEY, 
-                    'Authorization': `Bearer ${SUPABASE_KEY}`, 
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=representation'
-                },
-                body: JSON.stringify({ points })
-            });
-            if (response.ok) {
-                showNotification('✅ Aggiornato!', 'success');
-                loadStandings();
-            }
+            const t1Name = teams.find(t => t.id === t1)?.name || 'Squadra 1';
+            const t2Name = teams.find(t => t.id === t2)?.name || 'Squadra 2';
+            currentMatch = { team1: t1, team2: t2, score1: 0, score2: 0, goals: [], date: document.getElementById('matchDate').value };
+            document.getElementById('finalScore').textContent = '0 - 0';
+            document.getElementById('goalsList').innerHTML = '<p style="opacity: 0.7; text-align: center;">Nessun gol</p>';
+            showNotification('partiteNotification', `▶️ Partita avviata: ${t1Name} vs ${t2Name}`, 'success');
         }
 
         function addGoal() {
@@ -645,17 +390,18 @@
             const minute = document.getElementById('goalMinute').value;
             const team = document.getElementById('goalTeam').value;
             if (!scorer || !minute || !team) {
-                showNotification('❌ Compila i campi', 'error');
+                showNotification('partiteNotification', '❌ Compila campi', 'error');
                 return;
             }
             currentMatch.goals.push({ scorer, minute: parseInt(minute), team: parseInt(team) });
             if (team === '1') currentMatch.score1++;
             else currentMatch.score2++;
+            document.getElementById('finalScore').textContent = `${currentMatch.score1} - ${currentMatch.score2}`;
             updateGoalsDisplay();
             document.getElementById('goalScorer').value = '';
             document.getElementById('goalMinute').value = '';
             document.getElementById('goalTeam').value = '';
-            updateScore();
+            showNotification('partiteNotification', `⚽ Gol di ${scorer}!`, 'success');
         }
 
         function undoLastGoal() {
@@ -663,158 +409,3 @@
             const goal = currentMatch.goals.pop();
             if (goal.team === 1) currentMatch.score1--;
             else currentMatch.score2--;
-            updateGoalsDisplay();
-            updateScore();
-        }
-
-        function updateGoalsDisplay() {
-            const div = document.getElementById('goalsList');
-            if (!currentMatch.goals.length) {
-                div.innerHTML = '<p style="opacity: 0.7; text-align: center;">Nessun gol</p>';
-                return;
-            }
-            div.innerHTML = currentMatch.goals.map(g => `<div class="goal-item">${g.team === 1 ? '🔴' : '🔵'} ${g.scorer} - ${g.minute}'</div>`).join('');
-        }
-
-        function updateScore() {
-            document.getElementById('finalScore').textContent = `${currentMatch.score1} - ${currentMatch.score2}`;
-        }
-
-        function startNewMatch() {
-            const t1 = document.getElementById('team1').value;
-            const t2 = document.getElementById('team2').value;
-            if (!t1 || !t2) {
-                showNotification('❌ Seleziona squadre', 'error');
-                return;
-            }
-            currentMatch = { team1: t1, team2: t2, score1: 0, score2: 0, goals: [], date: document.getElementById('matchDate').value };
-            updateScore();
-            updateGoalsDisplay();
-            showNotification('✅ Partita avviata!', 'success');
-        }
-
-        async function saveMatch() {
-            if (!currentMatch.team1 || !currentMatch.team2) {
-                showNotification('❌ Avvia partita prima', 'error');
-                return;
-            }
-            const result = await apiCall('POST', 'matches', {
-                team1_id: currentMatch.team1,
-                team2_id: currentMatch.team2,
-                score1: currentMatch.score1,
-                score2: currentMatch.score2,
-                date: currentMatch.date,
-                status: 'completed'
-            });
-            if (result) {
-                showNotification('✅ Salvata!', 'success');
-                currentMatch = { team1: "", team2: "", score1: 0, score2: 0, goals: [], date: "" };
-                document.getElementById('team1').value = '';
-                document.getElementById('team2').value = '';
-                updateScore();
-                updateGoalsDisplay();
-                updateHomeStats();
-            }
-        }
-
-        async function addStaff() {
-            const name = document.getElementById('staffName').value.trim();
-            const role = document.getElementById('staffRole').value;
-            if (!name || !role) {
-                showNotification('❌ Compila i campi', 'error');
-                return;
-            }
-            const result = await apiCall('POST', 'staff', { name, role });
-            if (result) {
-                showNotification('✅ Aggiunto!', 'success');
-                document.getElementById('staffName').value = '';
-                document.getElementById('staffRole').value = '';
-                loadStaff();
-            }
-        }
-
-        async function loadStaff() {
-            const result = await apiCall('GET', 'staff');
-            if (result && Array.isArray(result)) {
-                staff = result;
-                updateStaffDisplay();
-            }
-        }
-
-        function updateStaffDisplay() {
-            const tbody = document.getElementById('staffTable');
-            if (!staff.length) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center">Nessuno</td></tr>';
-                return;
-            }
-            tbody.innerHTML = staff.map(m => `<tr><td>${m.name}</td><td>${m.role}</td><td><button class="btn btn-error" style="padding: 0.25rem 0.75rem; font-size: 0.85rem;" onclick="deleteStaff('${m.id}')">🗑️</button></td></tr>`).join('');
-        }
-
-        async function deleteStaff(id) {
-            if (!confirm('Sicuro?')) return;
-            const url = `${SUPABASE_URL}/rest/v1/staff?id=eq.${id}`;
-            const response = await fetch(url, { method: 'DELETE', headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` } });
-            if (response.ok) loadStaff();
-        }
-
-        async function updateHomeStats() {
-            const matches = await apiCall('GET', 'matches');
-            if (matches && Array.isArray(matches)) {
-                document.getElementById('totalMatches').textContent = matches.length;
-                const goals = matches.reduce((sum, m) => sum + (m.score1 || 0) + (m.score2 || 0), 0);
-                document.getElementById('totalGoals').textContent = goals;
-            }
-        }
-
-        function showNotification(msg, type = 'info') {
-            const area = document.getElementById('notificationArea');
-            const notif = document.createElement('div');
-            notif.className = `notification ${type}`;
-            notif.textContent = msg;
-            area.appendChild(notif);
-            setTimeout(() => notif.remove(), 3000);
-        }
-
-        function uploadPDF() {
-            const file = document.getElementById('pdfFile').files[0];
-            if (!file) {
-                showNotification('❌ Seleziona un file', 'error');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const base64 = e.target.result.split(',')[1];
-                const url = `${SUPABASE_URL}/storage/v1/object/regolamento/regolamento.pdf`;
-                
-                const response = await fetch(url, {
-                    method: 'PUT',
-                    headers: {
-                        'apikey': SUPABASE_KEY,
-                        'Authorization': `Bearer ${SUPABASE_KEY}`,
-                        'Content-Type': 'application/pdf'
-                    },
-                    body: Uint8Array.from(atob(base64), c => c.charCodeAt(0))
-                });
-
-                if (response.ok) {
-                    showNotification('✅ PDF caricato!', 'success');
-                    document.getElementById('pdfFile').value = '';
-                } else {
-                    showNotification('❌ Errore caricamento', 'error');
-                }
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function downloadPDF() {
-            const url = `${SUPABASE_URL}/storage/v1/object/public/regolamento/regolamento.pdf`;
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'regolamento.pdf';
-            link.click();
-            showNotification('📥 Download avviato!', 'success');
-        }
-    </script>
-</body>
-</html>
