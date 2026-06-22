@@ -550,17 +550,19 @@
 
         async function loadTeams() {
             const result = await apiCall('GET', 'teams');
-            if (result && Array.isArray(result)) {
+            if (result && Array.isArray(result) && result.length > 0) {
                 teams = result;
                 ['team1', 'team2', 'editTeamSelect'].forEach(id => {
                     const select = document.getElementById(id);
-                    select.innerHTML = '<option value="">Seleziona</option>';
-                    teams.forEach(team => {
-                        const opt = document.createElement('option');
-                        opt.value = team.id;
-                        opt.textContent = team.name;
-                        select.appendChild(opt);
-                    });
+                    if (select) {
+                        select.innerHTML = '<option value="">Seleziona</option>';
+                        teams.forEach(team => {
+                            const opt = document.createElement('option');
+                            opt.value = team.id;
+                            opt.textContent = team.name;
+                            select.appendChild(opt);
+                        });
+                    }
                 });
             }
         }
@@ -624,7 +626,12 @@
             const url = `${SUPABASE_URL}/rest/v1/standings?id=eq.${teamId}`;
             const response = await fetch(url, {
                 method: 'PATCH',
-                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' },
+                headers: { 
+                    'apikey': SUPABASE_KEY, 
+                    'Authorization': `Bearer ${SUPABASE_KEY}`, 
+                    'Content-Type': 'application/json',
+                    'Prefer': 'return=representation'
+                },
                 body: JSON.stringify({ points })
             });
             if (response.ok) {
@@ -768,8 +775,46 @@
             setTimeout(() => notif.remove(), 3000);
         }
 
-        function uploadPDF() { showNotification('PDF - da implementare', 'info'); }
-        function downloadPDF() { showNotification('PDF - da implementare', 'info'); }
+        function uploadPDF() {
+            const file = document.getElementById('pdfFile').files[0];
+            if (!file) {
+                showNotification('❌ Seleziona un file', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const base64 = e.target.result.split(',')[1];
+                const url = `${SUPABASE_URL}/storage/v1/object/regolamento/regolamento.pdf`;
+                
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/pdf'
+                    },
+                    body: Uint8Array.from(atob(base64), c => c.charCodeAt(0))
+                });
+
+                if (response.ok) {
+                    showNotification('✅ PDF caricato!', 'success');
+                    document.getElementById('pdfFile').value = '';
+                } else {
+                    showNotification('❌ Errore caricamento', 'error');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function downloadPDF() {
+            const url = `${SUPABASE_URL}/storage/v1/object/public/regolamento/regolamento.pdf`;
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'regolamento.pdf';
+            link.click();
+            showNotification('📥 Download avviato!', 'success');
+        }
     </script>
 </body>
 </html>
