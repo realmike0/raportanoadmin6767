@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raportano - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { color-scheme: light dark; }
+
+        @media (prefers-color-scheme: light) {
+            body { background: #fffbfe; color: #1c1b1f; }
+            :root {
+                --primary: #7d5260;
+                --on-primary: #ffffff;
+                --surface: #fffbfe;
+                --surface-container: #f7f2f6;
+                --outline: #79747e;
+                --error: #b3261e;
+                --success: #1b5e20;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            body { background: #1c1b1f; color: #e6e1e5; }
+            :root {
+                --primary: #eaddff;
+                --on-primary: #432874;
+                --surface: #1c1b1f;
+                --surface-container: #2f2d32;
+                --outline: #9e9da0;
+                --error: #f2b8b5;
+                --success: #69f0ae;
+            }
+        }
+
+        body { font-family: system-ui, -apple-system, sans-serif; }
+        .app { display: flex; flex-direction: column; height: 100vh; }
+        header { padding: 1rem; text-align: center; border-bottom: 1px solid var(--outline); background: var(--surface-container); }
+
+        .tabs { display: flex; gap: 0.5rem; padding: 1rem; border-bottom: 1px solid var(--outline); overflow-x: auto; background: var(--surface-container); }
+        .tab { padding: 0.75rem 1.5rem; border: none; background: transparent; cursor: pointer; font-weight: 600; border-radius: 6px; }
+        .tab.active { background: var(--primary); color: var(--on-primary); }
+
+        .main { flex: 1; overflow-y: auto; padding: 1.5rem; max-width: 1000px; margin: 0 auto; width: 100%; }
+        .panel { display: none; }
+        .panel.show { display: block; }
+
+        .card { background: var(--surface-container); border: 1px solid var(--outline); border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+        h2 { font-size: 1.2rem; margin-bottom: 1rem; color: var(--primary); }
+
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        input, select, textarea { width: 100%; padding: 0.75rem; border: 1px solid var(--outline); border-radius: 6px; background: var(--surface); color: inherit; font-family: inherit; font-size: 1rem; }
+        textarea { resize: vertical; }
+
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; background: var(--primary); color: var(--on-primary); }
+        .btn:hover { opacity: 0.9; }
+        .btn-secondary { background: var(--surface-container); border: 1px solid var(--outline); color: inherit; }
+        .btn-danger { background: var(--error); color: white; }
+
+        .alert { padding: 1rem; border-radius: 6px; margin-bottom: 1rem; border-left: 4px solid; }
+        .alert.success { background: var(--success); background-color: rgba(27, 94, 32, 0.1); border-left-color: var(--success); color: var(--success); }
+        .alert.error { background: var(--error); background-color: rgba(179, 38, 30, 0.1); border-left-color: var(--error); color: var(--error); }
+
+        .news-list { margin-top: 1rem; }
+        .news-card { background: var(--surface); border: 1px solid var(--outline); border-radius: 6px; padding: 1rem; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: start; gap: 1rem; }
+        .news-text { flex: 1; }
+        .news-text h3 { font-size: 1rem; margin-bottom: 0.25rem; }
+        .news-text p { font-size: 0.9rem; opacity: 0.7; }
+
+        .matches-list { margin-top: 1rem; }
+        .match-card { background: var(--surface); border: 1px solid var(--outline); border-radius: 6px; padding: 1rem; margin-bottom: 0.75rem; }
+        .match-header { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; }
+        .match-score { font-size: 1.5rem; font-weight: 700; text-align: center; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--outline); }
+        th { background: var(--surface); font-weight: 600; }
+
+        @media (max-width: 768px) {
+            .tabs { gap: 0.25rem; }
+            .tab { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .main { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>⚽ Raportano Admin</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showPanel('home')">🏠 Home</button>
+            <button class="tab" onclick="showPanel('partite')">⚽ Partite</button>
+            <button class="tab" onclick="showPanel('calendario')">📅 Calendario</button>
+            <button class="tab" onclick="showPanel('staff')">👥 Staff</button>
+            <button class="tab" onclick="showPanel('regolamento')">📄 Regolamento</button>
+        </div>
+
+        <div class="main">
+            <!-- HOME -->
+            <div id="home" class="panel show">
+                <div id="homeAlerts"></div>
+
+                <div class="card">
+                    <h2>📰 Scrivi Notizia</h2>
+                    <div class="form-group">
+                        <label>Titolo</label>
+                        <input type="text" id="newsTitle" placeholder="Titolo notizia">
+                    </div>
+                    <div class="form-group">
+                        <label>Testo</label>
+                        <textarea id="newsText" placeholder="Contenuto notizia" rows="3"></textarea>
+                    </div>
+                    <button class="btn" onclick="saveNews()">Pubblica</button>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Notizie</h2>
+                    <div id="newsList" class="news-list">
+                        <p style="opacity: 0.5;">Caricamento...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTITE -->
+            <div id="partite" class="panel">
+                <div id="partiteAlerts"></div>
+
+                <div class="card">
+                    <h2>⚽ Nuova Partita</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Squadra 1</label>
+                            <select id="team1">
+                                <option value="">Caricamento...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Squadra 2</label>
+                            <select id="team2">
+                                <option value="">Caricamento...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" id="matchDate">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="startMatch()">Avvia Partita</button>
+                </div>
+
+                <div class="card">
+                    <h2>⚽ Registra Gol</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Marcatore</label>
+                            <input type="text" id="goalScorer" placeholder="Nome">
+                        </div>
+                        <div class="form-group">
+                            <label>Minuto</label>
+                            <input type="number" id="goalMinute" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Squadra</label>
+                            <select id="goalTeam">
+                                <option value="">Scegli</option>
+                                <option value="1">Squadra 1</option>
+                                <option value="2">Squadra 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="addGoal()">Registra Gol</button>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Risultato</h2>
+                    <div style="font-size: 2.5rem; font-weight: 700; text-align: center; margin: 1.5rem 0;" id="scoreDisplay">0 - 0</div>
+                    <div id="goalsList" style="background: var(--surface); border-radius: 6px; padding: 1rem; max-height: 200px; overflow-y: auto;">
+                        <p style="opacity: 0.5;">Nessun gol</p>
+                    </div>
+                    <button class="btn" onclick="saveMatch()" style="width: 100%; margin-top: 1rem;">💾 Salva Partita</button>
+                </div>
+            </div>
+
+            <!-- CALENDARIO -->
+            <div id="calendario" class="panel">
+                <div class="card">
+                    <h2>📅 Partite</h2>
+                    <div id="matchesList" class="matches-list">
+                        <p style="opacity: 0.5;">Caricamento...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAFF -->
+            <div id="staff" class="panel">
+                <div id="staffAlerts"></div>
+
+                <div class="card">
+                    <h2>👥 Staff</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ruolo</th>
+                                <th>Nome</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTable">
+                            <tr>
+                                <td colspan="3" style="text-align: center; opacity: 0.5;">Caricamento...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- REGOLAMENTO -->
+            <div id="regolamento" class="panel">
+                <div id="regAlerts"></div>
+
+                <div class="card">
+                    <h2>📄 Regolamento</h2>
+                    <div class="form-group">
+                        <label>Carica PDF</label>
+                        <input type="file" id="pdfFile" accept=".pdf">
+                    </div>
+                    <button class="btn" onclick="uploadPDF()">Carica</button>
+                    <button class="btn btn-secondary" onclick="downloadPDF()" style="margin-left: 0.5rem;">Scarica</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://nvkpmmktfzhepswkwctb.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_VlZNFZJSHCTqqa7h0939bQ_X5CLfyLF";
+
+        let currentMatch = null;
+        let teams = [];
+        let matches = [];
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name).classList.add('show');
+            event.target.classList.add('active');
+            
+            if (name === 'home') loadNews();
+            else if (name === 'calendario') loadMatches();
+            else if (name === 'staff') loadStaff();
+        }
+
+        function alert(msg, type = 'success', panelId = 'homeAlerts') {
+            const div = document.getElementById(panelId);
+            const el = document.createElement('div');
+            el.className = `alert ${type}`;
+            el.textContent = msg;
+            div.insertBefore(el, div.firstChild);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        async function api(method, table, data = null) {
+            const url = `${SUPABASE_URL}/rest/v1/${table}`;
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: data ? JSON.stringify(data) : null
+                });
+                if (!res.ok) throw new Error(`${res.status}`);
+                return await res.json();
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        }
+
+        async function loadTeams() {
+            const res = await api('GET', 'teams');
+            if (res) {
+                teams = res;
+                ['team1', 'team2'].forEach(id => {
+                    const sel = document.getElementById(id);
+                    sel.innerHTML = '<option value="">Scegli</option>';
+                    teams.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name;
+                        sel.appendChild(opt);
+                    });
+                });
+            }
+        }
+
+        async function saveNews() {
+            const title = document.getElementById('newsTitle').value.trim();
+            const text = document.getElementById('newsText').value.trim();
+            
+            if (!title || !text) {
+                alert('❌ Compila titolo e testo', 'error', 'homeAlerts');
+                return;
+            }
+
+            const res = await api('POST', 'news', { title, text });
+            if (res) {
+                alert('✅ Notizia pubblicata', 'success', 'homeAlerts');
+                document.getElementById('newsTitle').value = '';
+                document.getElementById('newsText').value = '';
+                loadNews();
+            } else {
+                alert('❌ Errore salvataggio', 'error', 'homeAlerts');
+            }
+        }
+
+        async function loadNews() {
+            const res = await api('GET', 'news?order=created_at.desc');
+            const div = document.getElementById('newsList');
+            
+            if (!res || !res.length) {
+                div.innerHTML = '<p style="opacity: 0.5;">Nessuna notizia</p>';
+                return;
+            }
+
+            div.innerHTML = res.map(n => `
+                <div class="news-card">
+                    <div class="news-text">
+                        <h3>${n.title}</h3>
+                        <p>${n.text}</p>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 0.5rem 1rem; white-space: nowrap;" onclick="deleteNews('${n.id}')">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteNews(id) {
+            if (!confirm('Elimina?')) return;
+            
+            const url = `${SUPABASE_URL}/rest/v1/news?id=eq.${id}`;
+            const res = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'apikey': SUPABASE_KEY,
+                    'Authorization': `Bearer ${SUPABASE_KEY}`
+                }
+            });
+
+            if (res.ok) {
+                alert('✅ Eliminata', 'success', 'homeAlerts');
+                loadNews();
+            }
+        }
+
+        function startMatch() {
+            const t1 = document.getElementById('team1').value;
+            const t2 = document.getElementById('team2').value;
+            
+            if (!t1 || !t2) {
+                alert('❌ Seleziona squadre', 'error', 'partiteAlerts');
+                return;
+            }
+
+            const tn1 = teams.find(x => x.id === t1)?.name || 'Squad1';
+            const tn2 = teams.find(x => x.id === t2)?.name || 'Squad2';
+
+            currentMatch = { team1: t1, team2: t2, score1: 0, score2: 0, goals: [], date: document.getElementById('matchDate').value };
+            
+            updateScore();
+            alert(`▶️ ${tn1} vs ${tn2}`, 'success', 'partiteAlerts');
+        }
+
+        function addGoal() {
+            if (!currentMatch) {
+                alert('❌ Avvia partita', 'error', 'partiteAlerts');
+                return;
+            }
+
+            const scorer = document.getElementById('goalScorer').value.trim();
+            const min = document.getElementById('goalMinute').value;
+            const team = document.getElementById('goalTeam').value;
+
+            if (!scorer || !min || !team) {
+                alert('❌ Compila campi', 'error', 'partiteAlerts');
+                return;
+            }
+
+            currentMatch.goals.push({ scorer, minute: parseInt(min), team: parseInt(team) });
+            if (team === '1') currentMatch.score1++;
+            else currentMatch.score2++;
+
+            updateScore();
+            document.getElementById('goalScorer').value = '';
+            document.getElementById('goalMinute').value = '';
+            document.getElementById('goalTeam').value = '';
+            alert(`⚽ Gol di ${scorer}`, 'success', 'partiteAlerts');
+        }
+
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = `${currentMatch.score1} - ${currentMatch.score2}`;
+            
+            const div = document.getElementById('goalsList');
+            if (!currentMatch.goals.length) {
+                div.innerHTML = '<p style="opacity: 0.5;">Nessun gol</p>';
+                return;
+            }
+
+            div.innerHTML = currentMatch.goals.map(g => `
+                <div style="padding: 0.5rem 0; border-bottom: 1px solid var(--outline);">
+                    ${g.team === 1 ? '🔴' : '🔵'} ${g.scorer} - ${g.minute}'
+                </div>
+            `).join('');
+        }
+
+        async function saveMatch() {
+            if (!currentMatch) {
+                alert('❌ Avvia partita', 'error', 'partiteAlerts');
+                return;
+            }
+
+            const res = await api('POST', 'matches', {
+                team1_id: currentMatch.team1,
+                team2_id: currentMatch.team2,
+                score1: currentMatch.score1,
+                score2: currentMatch.score2,
+                date: currentMatch.date,
+                status: 'completed'
+            });
+
+            if (res) {
+                alert('✅ Partita salvata', 'success', 'partiteAlerts');
+                currentMatch = null;
+                document.getElementById('scoreDisplay').textContent = '0 - 0';
+                document.getElementById('goalsList').innerHTML = '<p style="opacity: 0.5;">Nessun gol</p>';
+            } else {
+                alert('❌ Errore', 'error', 'partiteAlerts');
+            }
+        }
+
+        async function loadMatches() {
+            const res = await api('GET', 'matches?order=date.desc');
+            const div = document.getElementById('matchesList');
+
+            if (!res || !res.length) {
+                div.innerHTML = '<p style="opacity: 0.5;">Nessuna partita</p>';
+                return;
+            }
+
+            div.innerHTML = res.map(m => {
+                const t1 = teams.find(x => x.id === m.team1_id)?.name || 'Squad1';
+                const t2 = teams.find(x => x.id === m.team2_id)?.name || 'Squad2';
+                return `
+                    <div class="match-card">
+                        <div class="match-header">
+                            <div><strong>${t1}</strong></div>
+                            <div class="match-score">${m.score1 || 0} - ${m.score2 || 0}</div>
+                            <div style="text-align: right;"><strong>${t2}</strong></div>
+                        </div>
+                        <div style="font-size: 0.9rem; opacity: 0.7; margin-top: 0.5rem;">${m.date}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadStaff() {
+            const roles = ['Creatore', 'Presidente', 'Terzo Creatore'];
+            const tbody = document.getElementById('staffTable');
+
+            tbody.innerHTML = roles.map(role => `
+                <tr>
+                    <td>${role}</td>
+                    <td><input type="text" id="staff_${role}" placeholder="Nome" style="width: 100%;"></td>
+                    <td><button class="btn" style="padding: 0.5rem 1rem;" onclick="saveStaff('${role}')">Salva</button></td>
+                </tr>
+            `).join('');
+
+            const res = await api('GET', 'staff');
+            if (res) {
+                res.forEach(m => {
+                    const inp = document.getElementById(`staff_${m.role}`);
+                    if (inp) inp.value = m.name;
+                });
+            }
+        }
+
+        async function saveStaff(role) {
+            const name = document.getElementById(`staff_${role}`).value.trim();
+            if (!name) {
+                alert('❌ Inserisci nome', 'error', 'staffAlerts');
+                return;
+            }
+
+            const res = await api('POST', 'staff', { name, role });
+            if (res) {
+                alert(`✅ ${role} salvato`, 'success', 'staffAlerts');
+            } else {
+                alert('❌ Errore', 'error', 'staffAlerts');
+            }
+        }
+
+        async function uploadPDF() {
+            const file = document.getElementById('pdfFile').files[0];
+            if (!file) {
+                alert('❌ Seleziona file', 'error', 'regAlerts');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${SUPABASE_URL}/storage/v1/object/regolamento/regolamento.pdf`, {
+                    method: 'PUT',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'x-upsert': 'true'
+                    },
+                    body: file
+                });
+
+                if (res.ok) {
+                    alert('✅ PDF caricato', 'success', 'regAlerts');
+                    document.getElementById('pdfFile').value = '';
+                } else {
+                    const error = await res.text();
+                    alert(`❌ Errore: ${error}`, 'error', 'regAlerts');
+                }
+            } catch (e) {
+                alert('❌ Errore caricamento', 'error', 'regAlerts');
+            }
+        }
+
+        function downloadPDF() {
+            const url = `${SUPABASE_URL}/storage/v1/object/public/regolamento/regolamento.pdf`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'regolamento.pdf';
+            a.click();
+            alert('📥 Download avviato', 'success', 'regAlerts');
+        }
+
+        function subscribeToMatches() {
+            const wsUrl = `wss://${SUPABASE_URL.split('https://')[1]}/realtime/v1?apikey=${SUPABASE_KEY}`;
+            const ws = new WebSocket(wsUrl);
+            ws.onopen = () => {
+                ws.send(JSON.stringify({
+                    type: 'subscribe',
+                    event: '*',
+                    schema: 'public',
+                    table: 'matches'
+                }));
+            };
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.event === 'INSERT' || data.event === 'UPDATE') {
+                        loadMatches();
+                    }
+                } catch (e) {}
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('matchDate').valueAsDate = new Date();
+            loadTeams();
+            loadNews();
+            subscribeToMatches();
+        });
+    </script>
+</body>
+</html>
