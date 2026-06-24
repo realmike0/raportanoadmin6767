@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raportano Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Rubik', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            line-height: 1.5;
+        }
+
+        .app { display: flex; flex-direction: column; height: 100vh; }
+        
+        header {
+            padding: 1.5rem 2rem;
+            background: #0a0a0a;
+            border-bottom: 1px solid #1a1a1a;
+            order: 1;
+        }
+        
+        header h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem 2rem;
+            background: #0a0a0a;
+            border-top: 1px solid #1a1a1a;
+            overflow-x: auto;
+            order: 3;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.25rem;
+            border: none;
+            background: transparent;
+            color: #888;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.95rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+            font-family: 'Rubik', sans-serif;
+        }
+        
+        .tab:hover { color: #fff; }
+        .tab.active {
+            color: #fff;
+            background: #1a1a1a;
+            border-bottom: 2px solid #3b82f6;
+        }
+
+        .main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            order: 2;
+        }
+        
+        .panel { display: none; }
+        .panel.show { display: block; }
+
+        .card {
+            background: #0a0a0a;
+            border: 1px solid #1a1a1a;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: #ccc;
+            font-size: 0.95rem;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 0.875rem;
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            color: #fff;
+            font-family: 'Rubik', sans-serif;
+            font-size: 0.95rem;
+            transition: border 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            padding: 0.875rem 1.75rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            background: #3b82f6;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: 'Rubik', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .btn:hover { background: #2563eb; transform: translateY(-2px); }
+        .btn-secondary { background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; }
+        .btn-secondary:hover { background: #2a2a2a; }
+        .btn-danger { background: #ef4444; }
+        .btn-danger:hover { background: #dc2626; }
+
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+            font-weight: 500;
+        }
+        
+        .alert.success {
+            background: rgba(34, 197, 94, 0.1);
+            border-left-color: #22c55e;
+            color: #86efac;
+        }
+        
+        .alert.error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .news-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .news-card:hover { border-color: #3a3a3a; }
+        .news-text { flex: 1; }
+        .news-text h3 { font-size: 1.05rem; margin-bottom: 0.5rem; color: #fff; }
+        .news-text p { font-size: 0.9rem; color: #888; }
+
+        .match-card {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s;
+        }
+        
+        .match-card:hover { border-color: #3a3a3a; }
+        .match-header {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .match-score {
+            font-size: 1.8rem;
+            font-weight: 700;
+            text-align: center;
+            color: #3b82f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        thead { border-bottom: 2px solid #1a1a1a; }
+        th, td { padding: 1rem; text-align: left; font-size: 0.95rem; }
+        th { background: #0a0a0a; font-weight: 600; color: #ccc; }
+        tbody tr { border-bottom: 1px solid #1a1a1a; }
+        tbody tr:hover { background: #0a0a0a; }
+
+        @media (max-width: 768px) {
+            .tabs { gap: 0.5rem; padding: 1rem; }
+            .tab { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            .main { padding: 1rem; }
+            header { padding: 1rem; }
+            header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header>
+            <h1>⚽ Raportano Admin</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showPanel('home')">🏠 Home</button>
+            <button class="tab" onclick="showPanel('partite')">⚽ Partite</button>
+            <button class="tab" onclick="showPanel('calendario')">📅 Calendario</button>
+            <button class="tab" onclick="showPanel('staff')">👥 Staff</button>
+            <button class="tab" onclick="showPanel('regolamento')">📄 Regolamento</button>
+        </div>
+
+        <div class="main">
+            <!-- HOME -->
+            <div id="home" class="panel show">
+                <div id="homeAlerts"></div>
+
+                <div class="card">
+                    <h2>📰 Scrivi Notizia</h2>
+                    <div class="form-group">
+                        <label>Titolo</label>
+                        <input type="text" id="newsTitle" placeholder="Titolo notizia">
+                    </div>
+                    <div class="form-group">
+                        <label>Testo</label>
+                        <textarea id="newsText" placeholder="Contenuto notizia" rows="3"></textarea>
+                    </div>
+                    <button class="btn" onclick="saveNews()">Pubblica</button>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Notizie</h2>
+                    <div id="newsList">
+                        <p style="color: #666;">Caricamento...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PARTITE -->
+            <div id="partite" class="panel">
+                <div id="partiteAlerts"></div>
+
+                <div class="card">
+                    <h2>⚽ Nuova Partita</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Squadra 1</label>
+                            <select id="team1">
+                                <option value="">Caricamento...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Squadra 2</label>
+                            <select id="team2">
+                                <option value="">Caricamento...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" id="matchDate">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="startMatch()">Avvia Partita</button>
+                </div>
+
+                <div class="card">
+                    <h2>⚽ Registra Gol</h2>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Marcatore</label>
+                            <div style="position: relative;">
+                                <input type="text" id="goalScorer" placeholder="Nome" autocomplete="off" oninput="suggestScorer()">
+                                <div id="scorerSuggestions" style="position: absolute; top: 100%; left: 0; right: 0; background: #1a1a1a; border: 1px solid #2a2a2a; border-top: none; border-radius: 0 0 6px 6px; max-height: 150px; overflow-y: auto; z-index: 10; display: none;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Minuto</label>
+                            <input type="number" id="goalMinute" min="0" max="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Squadra</label>
+                            <select id="goalTeam">
+                                <option value="">Scegli</option>
+                                <option value="1">Squadra 1</option>
+                                <option value="2">Squadra 2</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="addGoal()">Registra Gol</button>
+                </div>
+
+                <div class="card">
+                    <h2>📊 Risultato</h2>
+                    <div style="font-size: 2.5rem; font-weight: 700; text-align: center; margin: 1.5rem 0; color: #3b82f6;" id="scoreDisplay">0 - 0</div>
+                    <div id="goalsList" style="background: #1a1a1a; border-radius: 6px; padding: 1rem; max-height: 200px; overflow-y: auto;">
+                        <p style="color: #666;">Nessun gol</p>
+                    </div>
+                    <button class="btn" onclick="saveMatch()" style="width: 100%; margin-top: 1rem;">💾 Salva Partita</button>
+                </div>
+            </div>
+
+            <!-- CALENDARIO -->
+            <div id="calendario" class="panel">
+                <div class="card">
+                    <h2>📅 Partite</h2>
+                    <div id="matchesList">
+                        <p style="color: #666;">Caricamento...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STAFF -->
+            <div id="staff" class="panel">
+                <div id="staffAlerts"></div>
+
+                <div class="card">
+                    <h2>👥 Staff</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ruolo</th>
+                                <th>Nome</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody id="staffTable">
+                            <tr>
+                                <td colspan="3" style="text-align: center; color: #666;">Caricamento...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- REGOLAMENTO -->
+            <div id="regolamento" class="panel">
+                <div id="regAlerts"></div>
+
+                <div class="card">
+                    <h2>📄 Regolamento Campionato Raportano</h2>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">REGOLE PRINCIPALI</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8;">
+                        <li>I tempi durano 30 minuti a tempo, nei supplementari 5 minuti a tempo</li>
+                        <li>Nei gironi non ci sono supplementari e rigori</li>
+                        <li>C'è il cartellino giallo e rosso</li>
+                        <li>Il calciomercato si apre quando lo annuncia il creatore e si chiude quando lo annuncia esso, dopo la chiusura nessuna squadra può prendere un giocatore da un'altra</li>
+                        <li>Nel caso in cui un giocatore è svincolato, una squadra può trattare con lui ma non può farlo entrare in squadra fino alla nuova apertura del calciomercato</li>
+                        <li>I SOLDI NON SI USANO</li>
+                        <li><strong>Formula Campionato Raportano:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem;">
+                                <li><strong>CAMPIONATO RAPORTANO A:</strong> 3 squadre, girone con partite secche o andata e ritorno. Le prime 2 classificate si sfidano alla FINALE DEL CAMPIONATO RAPORTANO, la 3ª classificata retrocede nel CAMPIONATO RAPORTANO B.</li>
+                                <li><strong>CAMPIONATO RAPORTANO B:</strong> 3 squadre, girone con partite secche o andata e ritorno. La prima classificata va nel CAMPIONATO RAPORTANO A.</li>
+                            </ul>
+                        </li>
+                        <li>Per il campionato invernale e i tornei paralleli la formula la manda il presidente sul gruppo</li>
+                        <li>Non si può fare ricorso, se l'arbitro ha fatto male verrà sospeso dal minimo di 1 partita al massimo di 7</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">REGOLE PER LE PARTITE</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; start: 10;">
+                        <li>Non esiste il retropassaggio, se si passa con i piedi al portiere e la prende con le mani è punizione di 2 dentro l'area di rigore</li>
+                        <li>Quando il portiere batte il giocatore avversario non può entrare in area per 5 secondi, se no punizione</li>
+                        <li>I campi dove si gioca sono: Campo R. Marcantonio, Campo F. Delli Muti (167), Campo D. Mosca (Dietro il campo blu)</li>
+                        <li>L'area di rigore è di 5 metri</li>
+                        <li>Il rigore si batte da 7 metri</li>
+                        <li>I giocatori in campo sono 4 + 1 in porta e in panchina quanto si vuole</li>
+                        <li>Ogni squadra deve avere almeno 5 giocatori nella rosa</li>
+                        <li>Una squadra può prendersi massimo 2 giocatori in prestito da altre squadre in una partita prima dell'inizio solo se i giocatori che vengono alla partita non sono 5, a patto che non giochino nella squadra che deve affrontare. Una squadra non si può prendere in prestito un giocatore se i giocatori che vengono alla partita sono 5 o più. Un giocatore svincolato non può andare in prestito in nessuna squadra.</li>
+                        <li>Nel caso in cui una squadra ha 1 o 2 giocatori in meno l'altra squadra si adegua a questa (esempio 4 v 4 o 3 v 3). Nel caso in cui in una squadra ci sono meno di 2 giocatori, la partita viene rimandata per massimo 2 volte di 30 minuti, se non ci sono ancora i parametri per giocare si ripete la partita il giorno dopo alla stessa ora dell'ultimo rinvio.</li>
+                        <li>La rimessa si batte con i piedi</li>
+                        <li>L'angolo si batte con i piedi</li>
+                        <li>Va fuori la palla quando tocca il muro o và nell'erba o supera la linea bianca</li>
+                        <li>Il portiere può tenere la palla per max. 5 secondi, se no si batte una punizione di seconda dentro l'area per gli avversari</li>
+                        <li>Così pure per i giocatori nelle rimesse, però battono dallo stesso punto degli avversari</li>
+                        <li>Una squadra durante una partita non si può ritirare a meno che non abbia 5 gol di scarto</li>
+                        <li>Una squadra non si può ritirare dal campionato prima della fine</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">SQUALIFICHE</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; start: 26;">
+                        <li>Non si può fare rissa, sennò cartellino rosso</li>
+                        <li>Il creatore o il presidente possono decidere di squalificare squadre o giocatori se: Non hanno rispettato il regolamento, Hanno insultato il campionato, Hanno insultato lo staff o giocatori, Hanno picchiato o tentato di picchiare staff o giocatori, Si comportano in modo sbagliato. Il creatore può decidere di squalificare un giocatore anche se non ha fatto i requisiti precedenti solo sentendo prima il presidente insieme al Terzo Creatore.</li>
+                        <li>Il cartellino rosso ti manda fuori dai 10 minuti a tutta la partita, decide l'arbitro sentendo il creatore o, in sua sostituzione, il presidente o un delegato</li>
+                        <li>È compito del creatore decidere se non farlo giocare la prossima partita</li>
+                        <li>Vieta gli insulti ad altri componenti del campionato, togliendo punti se tutta la squadra, squalifica se è una persona</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">CASI SPECIALI DI SQUALIFICA</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; start: 31;">
+                        <li>In caso di squalifica a uno o più giocatori per sempre dal Campionato, bisogna avere l'approvazione di almeno ⅓ dei partecipanti aderenti al voto del Campionato Raportano di categoria di quel giocatore dopo una proposta fatta dal Creatore, Presidente e Terzo Creatore in un comunicato con motivazioni valide.</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">LIMITI DI ETÀ</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; start: 32;">
+                        <li>Ci sono i limiti di categoria: Max 3 del 2010, Max 5 del 2011. Per i 2012 e 2013 in giù non ci sono limiti.</li>
+                        <li>Chi non rispetta il limite di età -2 punti dalla classifica</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">PALLONE D'ORO RAPORTANO</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; start: 34;">
+                        <li>Il pallone d'oro Raportano si svolge: 15 candidati minimo e 20 massimi. Il pallone d'oro lo vota il televoto scegliendo solo un candidato e la giuria votando da 1 a 5 ogni candidato.</li>
+                        <li>Il creatore decide i candidati del Pallone d'Oro</li>
+                        <li>Per essere candidato al Pallone d'Oro, un giocatore deve aver disputato almeno la metà delle partite</li>
+                        <li>In caso di non presenza alla maggior parte delle partite decide i candidati il Presidente o un delegato che è stato presente alla maggior parte delle partite</li>
+                        <li>La giuria è composta da 4 persone: Creatore, Presidente, Terzo Creatore e una persona scelta dal Creatore</li>
+                        <li>Il Pallone d'Oro comprende sia il Campionato Raportano che il Campionato Raportano B. Vengono considerati candidabili 2 giocatori del Campionato Raportano B facenti parte della squadra vincitrice</li>
+                    </ol>
+                </div>
+
+                <div class="card">
+                    <h3 style="color: #3b82f6; margin-bottom: 1rem; font-size: 1.2rem;">DISPOSIZIONI TRANSITORIE E FINALI</h3>
+                    <ol style="margin-left: 1.5rem; line-height: 1.8; start: 40;">
+                        <li>Criteri per le squadre: Devono rispettare l'art 32 del regolamento, Devono rispettare l'art. 15 del regolamento, Devono rispettare l'art.12 del regolamento, Devono accettare la Formula (Art 7 del regolamento), Devono rispettare l'Art. 16, Devono avere obbligatoriamente un Presidente, un Allenatore e un Capitano.</li>
+                        <li>Bisogna richiedere la partecipazione al Campionato al Creatore almeno 10 giorni prima dell'inizio</li>
+                        <li>Per le altre regole si consulta il regolamento ufficiale FIFA del gioco del calcio</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://nvkpmmktfzhepswkwctb.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_VlZNFZJSHCTqqa7h0939bQ_X5CLfyLF";
+
+        let allScorers = [];
+
+        async function loadAllScorers() {
+            const res = await api('GET', 'goals?select=scorer');
+            if (res && Array.isArray(res)) {
+                allScorers = [...new Set(res.map(g => g.scorer.trim()))].sort();
+            }
+        }
+
+        function levenshteinDistance(a, b) {
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1,
+                            matrix[i][j - 1] + 1,
+                            matrix[i - 1][j] + 1
+                        );
+                    }
+                }
+            }
+            return matrix[b.length][a.length];
+        }
+
+        function getSimilarityScore(a, b) {
+            const dist = levenshteinDistance(a.toLowerCase(), b.toLowerCase());
+            const maxLen = Math.max(a.length, b.length);
+            return 1 - (dist / maxLen);
+        }
+
+        function suggestScorer() {
+            const input = document.getElementById('goalScorer').value.trim().toLowerCase();
+            const suggestionsDiv = document.getElementById('scorerSuggestions');
+
+            if (!input || input.length < 2) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            const similar = allScorers
+                .filter(scorer => getSimilarityScore(scorer, input) > 0.6)
+                .sort((a, b) => getSimilarityScore(b, input) - getSimilarityScore(a, input))
+                .slice(0, 5);
+
+            if (similar.length === 0) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            suggestionsDiv.innerHTML = similar.map(name => `
+                <div style="padding: 0.75rem 1rem; cursor: pointer; border-bottom: 1px solid #2a2a2a; hover: background: #1a1a1a;" 
+                     onclick="selectScorerSuggestion('${name}')">
+                    ${name}
+                </div>
+            `).join('');
+            suggestionsDiv.style.display = 'block';
+        }
+
+        function selectScorerSuggestion(name) {
+            document.getElementById('goalScorer').value = name;
+            document.getElementById('scorerSuggestions').style.display = 'none';
+        }
+
+        function showPanel(name) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('show'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(name).classList.add('show');
+            event.target.classList.add('active');
+            if (name === 'home') loadNews();
+            else if (name === 'calendario') loadMatches();
+            else if (name === 'staff') loadStaff();
+        }
+
+        function alert(msg, type = 'success', panelId = 'homeAlerts') {
+            const div = document.getElementById(panelId);
+            const el = document.createElement('div');
+            el.className = `alert ${type}`;
+            el.textContent = msg;
+            div.insertBefore(el, div.firstChild);
+            setTimeout(() => el.remove(), 4000);
+        }
+
+        async function api(method, table, data = null) {
+            const url = `${SUPABASE_URL}/rest/v1/${table}`;
+            try {
+                const res = await fetch(url, {
+                    method,
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: data ? JSON.stringify(data) : null
+                });
+                if (!res.ok) throw new Error(`${res.status}`);
+                return await res.json();
+            } catch (e) { return null; }
+        }
+
+        async function loadTeams() {
+            const res = await api('GET', 'teams');
+            if (res) {
+                teams = res;
+                ['team1', 'team2'].forEach(id => {
+                    const sel = document.getElementById(id);
+                    sel.innerHTML = '<option value="">Scegli</option>';
+                    teams.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name;
+                        sel.appendChild(opt);
+                    });
+                });
+            }
+        }
+
+        async function saveNews() {
+            const title = document.getElementById('newsTitle').value.trim();
+            const text = document.getElementById('newsText').value.trim();
+            if (!title || !text) {
+                alert('❌ Compila titolo e testo', 'error', 'homeAlerts');
+                return;
+            }
+            const res = await api('POST', 'news', { title, text });
+            if (res) {
+                alert('✅ Notizia pubblicata', 'success', 'homeAlerts');
+                document.getElementById('newsTitle').value = '';
+                document.getElementById('newsText').value = '';
+                loadNews();
+            }
+        }
+
+        async function loadNews() {
+            const res = await api('GET', 'news?order=created_at.desc');
+            const div = document.getElementById('newsList');
+            if (!res || !res.length) {
+                div.innerHTML = '<p style="color: #666;">Nessuna notizia</p>';
+                return;
+            }
+            div.innerHTML = res.map(n => `
+                <div class="news-card">
+                    <div class="news-text">
+                        <h3>${n.title}</h3>
+                        <p>${n.text}</p>
+                    </div>
+                    <button class="btn btn-danger" style="padding: 0.5rem 1rem;" onclick="deleteNews('${n.id}')">🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        async function deleteNews(id) {
+            if (!confirm('Elimina?')) return;
+            const url = `${SUPABASE_URL}/rest/v1/news?id=eq.${id}`;
+            const res = await fetch(url, {
+                method: 'DELETE',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            if (res.ok) {
+                alert('✅ Eliminata', 'success', 'homeAlerts');
+                loadNews();
+            }
+        }
+
+        function startMatch() {
+            const t1 = document.getElementById('team1').value;
+            const t2 = document.getElementById('team2').value;
+            if (!t1 || !t2) {
+                alert('❌ Seleziona squadre', 'error', 'partiteAlerts');
+                return;
+            }
+            const tn1 = teams.find(x => x.id === t1)?.name || 'Squad1';
+            const tn2 = teams.find(x => x.id === t2)?.name || 'Squad2';
+            currentMatch = { team1: t1, team2: t2, score1: 0, score2: 0, goals: [], date: document.getElementById('matchDate').value };
+            loadAllScorers();
+            updateScore();
+            alert(`▶️ ${tn1} vs ${tn2}`, 'success', 'partiteAlerts');
+        }
+
+        function addGoal() {
+            if (!currentMatch) {
+                alert('❌ Avvia partita', 'error', 'partiteAlerts');
+                return;
+            }
+            const scorer = document.getElementById('goalScorer').value.trim();
+            const min = document.getElementById('goalMinute').value;
+            const team = document.getElementById('goalTeam').value;
+            if (!scorer || !min || !team) {
+                alert('❌ Compila campi', 'error', 'partiteAlerts');
+                return;
+            }
+            currentMatch.goals.push({ scorer, minute: parseInt(min), team: parseInt(team) });
+            if (team === '1') currentMatch.score1++;
+            else currentMatch.score2++;
+            updateScore();
+            document.getElementById('goalScorer').value = '';
+            document.getElementById('goalMinute').value = '';
+            document.getElementById('goalTeam').value = '';
+            alert(`⚽ Gol di ${scorer}`, 'success', 'partiteAlerts');
+        }
+
+        function updateScore() {
+            document.getElementById('scoreDisplay').textContent = `${currentMatch.score1} - ${currentMatch.score2}`;
+            const div = document.getElementById('goalsList');
+            if (!currentMatch.goals.length) {
+                div.innerHTML = '<p style="color: #666;">Nessun gol</p>';
+                return;
+            }
+            div.innerHTML = currentMatch.goals.map(g => `
+                <div style="padding: 0.5rem 0; border-bottom: 1px solid #2a2a2a;">
+                    ${g.team === 1 ? '🔴' : '🔵'} ${g.scorer} - ${g.minute}'
+                </div>
+            `).join('');
+        }
+
+        async function saveMatch() {
+            if (!currentMatch) {
+                alert('❌ Avvia partita', 'error', 'partiteAlerts');
+                return;
+            }
+            
+            // Salva la partita
+            const matchRes = await api('POST', 'matches', {
+                team1_id: currentMatch.team1,
+                team2_id: currentMatch.team2,
+                score1: currentMatch.score1,
+                score2: currentMatch.score2,
+                date: currentMatch.date,
+                status: 'completed'
+            });
+
+            if (matchRes && matchRes[0]) {
+                const matchId = matchRes[0].id;
+                
+                // Salva ogni gol
+                for (const goal of currentMatch.goals) {
+                    const teamId = goal.team === 1 ? currentMatch.team1 : currentMatch.team2;
+                    await api('POST', 'goals', {
+                        match_id: matchId,
+                        scorer: goal.scorer,
+                        minute: goal.minute,
+                        team_id: teamId
+                    });
+                }
+
+                alert('✅ Partita salvata', 'success', 'partiteAlerts');
+                currentMatch = null;
+                document.getElementById('scoreDisplay').textContent = '0 - 0';
+            } else {
+                alert('❌ Errore salvataggio', 'error', 'partiteAlerts');
+            }
+        }
+
+        async function loadMatches() {
+            const res = await api('GET', 'matches?order=date.desc');
+            const div = document.getElementById('matchesList');
+            if (!res || !res.length) {
+                div.innerHTML = '<p style="color: #666;">Nessuna partita</p>';
+                return;
+            }
+            div.innerHTML = res.map(m => {
+                const t1 = teams.find(x => x.id === m.team1_id)?.name || 'Squad1';
+                const t2 = teams.find(x => x.id === m.team2_id)?.name || 'Squad2';
+                return `
+                    <div class="match-card">
+                        <div class="match-header">
+                            <div><strong>${t1}</strong></div>
+                            <div class="match-score">${m.score1 || 0} - ${m.score2 || 0}</div>
+                            <div style="text-align: right;"><strong>${t2}</strong></div>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #888; margin-top: 0.5rem;">${m.date}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function loadStaff() {
+            const roles = ['Creatore', 'Presidente', 'Terzo Creatore'];
+            const tbody = document.getElementById('staffTable');
+            tbody.innerHTML = roles.map(role => `
+                <tr>
+                    <td>${role}</td>
+                    <td><input type="text" id="staff_${role}" placeholder="Nome" style="width: 100%;"></td>
+                    <td><button class="btn" style="padding: 0.5rem 1rem;" onclick="saveStaff('${role}')">Salva</button></td>
+                </tr>
+            `).join('');
+            const res = await api('GET', 'staff');
+            if (res) {
+                res.forEach(m => {
+                    const inp = document.getElementById(`staff_${m.role}`);
+                    if (inp) inp.value = m.name;
+                });
+            }
+        }
+
+        async function saveStaff(role) {
+            const name = document.getElementById(`staff_${role}`).value.trim();
+            if (!name) {
+                alert('❌ Inserisci nome', 'error', 'staffAlerts');
+                return;
+            }
+            const res = await api('POST', 'staff', { name, role });
+            if (res) alert(`✅ ${role} salvato`, 'success', 'staffAlerts');
+        }
+
+        async function uploadPDF() {
+            const file = document.getElementById('pdfFile').files[0];
+            if (!file) {
+                alert('❌ Seleziona file', 'error', 'regAlerts');
+                return;
+            }
+            try {
+                const res = await fetch(
+                    `${SUPABASE_URL}/storage/v1/object/regolamento/regolamento.pdf`,
+                    {
+                        method: 'PUT',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        },
+                        body: file
+                    }
+                );
+                if (res.ok) {
+                    alert('✅ PDF caricato!', 'success', 'regAlerts');
+                    document.getElementById('pdfFile').value = '';
+                } else {
+                    alert(`❌ Errore ${res.status}`, 'error', 'regAlerts');
+                }
+            } catch (e) {
+                alert(`❌ ${e.message}`, 'error', 'regAlerts');
+            }
+        }
+
+        function downloadPDF() {
+            const url = `${SUPABASE_URL}/storage/v1/object/public/regolamento/regolamento.pdf`;
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'regolamento.pdf';
+            a.click();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('matchDate').valueAsDate = new Date();
+            loadTeams();
+            loadNews();
+            loadAllScorers();
+            setInterval(() => loadMatches(), 5000);
+        });
+    </script>
+</body>
+</html>
